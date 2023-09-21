@@ -48,6 +48,6 @@ fs.createReadStream('criterios-pesos.csv') // Abre o arquivo CSV 'criterios-peso
         for (const projetoID in mediasProjetos) {
           console.log(`Projeto ID: ${projetoID}`, mediasProjetos[projetoID]);
         }
-        console.log('Processamento concluído. Médias Calculadas com Sucesso!'); 
+        console.log('Processamento concluído. Médias Ponderadas Calculadas com Sucesso!'); 
       });
   });
