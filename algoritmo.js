@@ -1,62 +1,53 @@
 import fs from 'fs';
 import csv from 'csv-parser';
 
-const projetosNotasCSV = 'projetos-notas.csv';
-const criteriosPesosCSV = 'criterios-pesos.csv';
+// Função para calcular a média ponderada de um projeto
+function calcularMediaPonderada(projeto, criteriosPesos) {
+  let mediaPonderada = {}; // Inicializa um objeto vazio para armazenar as médias ponderadas
 
-const lerCSVCriteriosPesos = () => {
-  const criteriosPesos = {};
+  for (let i = 0; i < criteriosPesos.length; i++) {
+    const criterio = `n${i + 1}`; // Gera uma chave para o critério ponderado, como 'n1', 'n2', ...
+    const peso = criteriosPesos[i]; // Obtém o peso correspondente a esse critério
+    mediaPonderada[criterio] = projeto[criterio] * peso; // Calcula a média ponderada para o critério e o armazena no objeto
+  }
 
-  fs.createReadStream(criteriosPesosCSV)
-    .pipe(csv())
-    .on('data', (row) => {
-      const [criterio, peso] = Object.values(row);
-      criteriosPesos[criterio] = parseFloat(peso);
-    })
-    .on('end', () => {
-      console.log('Critérios e pesos:', criteriosPesos);
-      lerCSVProjetosNotas(criteriosPesos);
-    });
-};
+  return mediaPonderada; // Retorna o objeto com as médias ponderadas para cada critério
+}
 
-const lerCSVProjetosNotas = (criteriosPesos) => {
-  const projetosNotas = [];
+// Objeto para armazenar as médias dos projetos
+const mediasProjetos = {};
 
-  fs.createReadStream(projetosNotasCSV)
-    .pipe(csv())
-    .on('data', (row) => {
-      projetosNotas.push(row);
-    })
-    .on('end', () => {
-      projetosNotas.shift();
-      calcularMediasPonderadas(projetosNotas, criteriosPesos);
-    });
-};
+// Lê a planilha de critérios e pesos
+const criteriosPesos = [];
+fs.createReadStream('criterios-pesos.csv') // Abre o arquivo CSV 'criterios-pesos.csv'
+  .pipe(csv()) // Utiliza o 'csv-parser' para analisar o arquivo CSV em linhas
+  .on('data', (row) => { // Para cada linha do arquivo
+    const peso = parseFloat(row['pesos']); // Obtém o valor de peso da linha atual
+    criteriosPesos.push(peso); // Adiciona o peso ao array 'criteriosPesos'
+  })
+  .on('end', () => { // Após a leitura do arquivo ser concluída
+    // Lê a planilha de projetos e notas
+    fs.createReadStream('projetos-notas.csv') // Abre o arquivo CSV 'projetos-notas.csv'
+      .pipe(csv()) // Utiliza o 'csv-parser' para analisar o arquivo CSV em linhas
+      .on('data', (row) => { // Para cada linha do arquivo
+        const projetoID = parseInt(row['fk_projeto']); // Obtém o ID do projeto da linha atual
+        const mediaPonderada = calcularMediaPonderada(row, criteriosPesos); // Calcula a média ponderada com base nos critérios e pesos
 
-const calcularMediasPonderadas = (projetosNotas, criteriosPesos) => {
-  const mediasPonderadas = [];
-
-  projetosNotas.forEach((projeto) => {
-    const mediasPorProjeto = {}; // Objeto para armazenar médias ponderadas por projeto
-
-    for (let i = 5; i <= 11; i++) {
-      const nota = parseFloat(projeto[`n${i}`]);
-      const peso = criteriosPesos[`n${i}`];
-      const criterio = `n${i}`;
-      const notaPonderada = nota * peso;
-
-      // Armazena a média ponderada para cada critério do projeto
-      mediasPorProjeto[criterio] = notaPonderada;
-    }
-
-    mediasPonderadas.push(mediasPorProjeto);
+        // Verifica se o projeto já existe no objeto de médias
+        if (!mediasProjetos[projetoID]) {
+          mediasProjetos[projetoID] = mediaPonderada; // Se não existir, cria uma entrada com as médias ponderadas
+        } else {
+          // Soma as médias ponderadas aos critérios existentes
+          for (const criterio in mediaPonderada) {
+            mediasProjetos[projetoID][criterio] += mediaPonderada[criterio];
+          }
+        }
+      })
+      .on('end', () => { // Após a leitura do arquivo ser concluída
+        // Imprime as médias dos projetos
+        for (const projetoID in mediasProjetos) {
+          console.log(`Projeto ID: ${projetoID}`, mediasProjetos[projetoID]); // Exibe as médias ponderadas para cada projeto
+        }
+        console.log('Processamento concluído.'); // Indica que o processamento foi concluído
+      });
   });
-
-  console.log('Médias ponderadas dos projetos:', mediasPonderadas);
-};
-
-const main = () => {
-  lerCSVCriteriosPesos();
-};
-
-main();
