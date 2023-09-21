@@ -3,7 +3,7 @@ import csv from 'csv-parser';
 
 // Função para calcular a média ponderada de um projeto
 function calcularMediaPonderada(projeto, criteriosPesos) {
-  let mediaPonderada = {}; // Inicializa um objeto vazio para armazenar as médias ponderadas
+  let mediaPonderada = {}; // objeto vazio para armazenar as médias ponderadas
 
   for (let i = 0; i < criteriosPesos.length; i++) {
     const criterio = `n${i + 1}`; // Gera uma chave para o critério ponderado, como 'n1', 'n2', ...
