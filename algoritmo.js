@@ -1,7 +1,6 @@
 import fs from 'fs';          // Módulo 'fs' para lidar com operações de arquivo
 import csv from 'csv-parser'; // Módulo 'csv-parser' para analisar arquivos CSV
 
-let criteriosPesos = {}; // Objeto para armazenar critérios e seus pesos
 
 // Arquivos CSV de entrada
 const projetosNotasCSV = 'projetos-notas.csv';
@@ -9,6 +8,7 @@ const criteriosPesosCSV = 'criterios-pesos.csv';
 
 // Função para ler o arquivo CSV de critérios e pesos
 const lerCSVCriteriosPesos = () => {
+  let criteriosPesos = {}; // Objeto para armazenar critérios e seus pesos
   // Lê o arquivo CSV linha por linha e adiciona os dados ao objeto criteriosPesos
   fs.createReadStream(criteriosPesosCSV)
     .pipe(csv()) // Usa o csv-parser
